@@ -44,18 +44,18 @@ export class HttpClient {
     private static handleAxiosResponse<T>(res: AxiosResponse<APIResponse<T>>): Promise<T> {
         const { data } = res;
 
-        if (data?.status === StatusCode.NotFound) {
-            return Promise.reject<T>(new Error(data.message));
-        }
-
         if (data?.results) {
             return Promise.resolve<T>(data.results);
         }
 
-        return Promise.reject<T>(new Error(data.message));
+        return Promise.reject<T>(new Error(''));
     }
 
     private static handleAxiosError<T>(err: AxiosError): Promise<T> {
+        if (err?.response?.status === StatusCode.NotFound) {
+            return Promise.reject<T>('');
+        }
+    
         return Promise.reject<T>(err);
     }
 

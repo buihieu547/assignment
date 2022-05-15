@@ -2,7 +2,7 @@ import {
     useMemo, useState, memo, useEffect,
 } from 'react';
 import { AxiosError } from 'axios';
-import { message as Message } from 'antd';
+import { message as Message, Card, Skeleton } from 'antd';
 import { AnimeList } from 'components/AnimeList';
 import { AnimeFilterBar } from 'components/AnimeFilterBar';
 import {
@@ -12,6 +12,10 @@ import { AnimeModal } from 'components/AnimeModal';
 
 const Dashboard = memo((): JSX.Element => {
     const [loading, setLoading] = useState(false);
+    const [page, setPage] = useState({
+        q: '',
+        p: 1,
+    });
     const [details, setDetails] = useState<{
         visible: boolean,
         data?: AnimeListDataConvert,
@@ -22,9 +26,10 @@ const Dashboard = memo((): JSX.Element => {
     const [animeList, setAnimeList] = useState<AnimeListDataConvert[]>([]);
     const animeService = useMemo(() => new AnimeService(), []);
 
-    const onFilter = (name: string): void => {
-        console.log(name);
-    };
+    const onFilter = (name: string): void => setPage({
+        q: name,
+        p: 1,
+    });
 
     const onShowDetails = (d: AnimeListDataConvert): void => {
         setDetails({
@@ -38,6 +43,11 @@ const Dashboard = memo((): JSX.Element => {
         data: undefined,
     });
 
+    const onChangePage = (p: number) => setPage({
+        q: page.q,
+        p,
+    });
+
     const fetchAnimeList = async (): Promise<void> => {
         if (loading) {
             return;
@@ -46,8 +56,8 @@ const Dashboard = memo((): JSX.Element => {
         setLoading(true);
         try {
             const res = await animeService.getAnimeList({
-                q: '123123',
-                page: 1,
+                q: page.q,
+                page: page.p,
             });
             setAnimeList(res);
         } catch (err) {
@@ -97,9 +107,25 @@ const Dashboard = memo((): JSX.Element => {
         },
     ];
 
+    const renderList = (): JSX.Element => {
+        if (loading) {
+            return <Card><Skeleton active /></Card>;
+        }
+
+        return (
+            <AnimeList
+                columns={columns}
+                dataSource={animeList}
+                onClickRow={onShowDetails}
+                onChangePage={onChangePage}
+                page={page.p}
+            />
+        );
+    };
+
     useEffect(() => {
         fetchAnimeList();
-    }, []);
+    }, [page]);
 
     return (
         <>
@@ -109,11 +135,7 @@ const Dashboard = memo((): JSX.Element => {
                 onClose={onCloseModal}
             />
             <AnimeFilterBar onFilter={onFilter} />
-            <AnimeList
-                columns={columns}
-                dataSource={animeList}
-                onClickRow={onShowDetails}
-            />
+            {renderList()}
         </>
     );
 });

@@ -1,11 +1,15 @@
-import React from 'react';
-import Dashboard from 'containers/Dashboard/Dashboard';
+import { Suspense, lazy, memo } from 'react';
 import './App.scss';
 
-const App = (): JSX.Element => (
-    <div className='wrapper'>
-        <Dashboard />
-    </div>
-);
+const Dashboard = lazy(() => import('containers/Dashboard/Dashboard'));
+const App = memo((): JSX.Element => {
+    return (
+        <Suspense fallback="Loading...">
+            <div className='wrapper'>
+                <Dashboard />
+            </div>
+        </Suspense>
+    );
+});
 
 export default App;
